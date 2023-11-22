@@ -26,7 +26,6 @@ def get_stats_vacancies_hh():
             response.raise_for_status()
             vacancies = response.json()
             pages_number = vacancies["pages"]
-            print(current_page, pages_number)
             current_page += 1
             for vacancy in vacancies["items"]:
                 if vacancy.get("salary", None):
