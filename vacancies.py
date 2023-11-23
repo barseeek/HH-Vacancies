@@ -4,12 +4,11 @@ from dotenv import load_dotenv
 from terminaltables import AsciiTable
 
 
-def get_stats_vacancies_hh():
+def get_stats_vacancies_hh(area_id):
     url = "https://api.hh.ru/vacancies"
-    area_id = get_area_id_hh("Россия", "Москва")
     stats_programming_vacancies = {}
     programming_languages = ["Python", "JavaScript", "C#",
-                              "Go", "C++", "PHP"]
+                             "Go", "C++", "PHP"]
     for language in programming_languages:
         vacancy_name = "Программист {0}".format(language)
         current_page = 0
@@ -55,16 +54,8 @@ def get_area_id_hh(country, location):
                 return area.get("id")
 
 
-def get_stats_vacancies_sj(api_key):
+def get_stats_vacancies_sj(headers, town_id, catalogue_id):
     url = "https://api.superjob.ru/2.0/vacancies/"
-    headers = {
-        "X-Api-App-Id": api_key
-    }
-    catalogue_id = get_catalogue_id_sj(
-        headers,
-        "Разработка, программирование"
-    )
-    town_id = get_town_id_sj(headers, "Москва")
     page_count = 100
     stats_programming_vacancies = {}
     programming_languages = ["Python", "JavaScript", "C#",
@@ -163,14 +154,14 @@ def predict_rub_salary_sj(vacancy):
         )
 
 
-def print_table(table_data, title):
+def print_table(lang_vacancy_stats, title):
     table = [[
         "Язык программирования",
         "Вакансий найдено",
         "Вакансий обработано",
         "Средняя зарплата"
     ]]
-    for language, vacancies_stats in table_data.items():
+    for language, vacancies_stats in lang_vacancy_stats.items():
         table.append([
             language,
             vacancies_stats.get("vacancies_found"),
@@ -183,8 +174,24 @@ def print_table(table_data, title):
 def main():
     load_dotenv()
     sj_api_key = os.environ["SUPERJOB_KEY"]
-    print_table(get_stats_vacancies_hh(), "HeadHunter Moscow")
-    print_table(get_stats_vacancies_sj(sj_api_key), "Superjob Moscow")
+    headers = {
+        "X-Api-App-Id": sj_api_key
+    }
+    hh_area_id = get_area_id_hh("Россия", "Москва")
+    sj_area_id = get_town_id_sj(headers, "Москва")
+    sj_catalogue_id = get_catalogue_id_sj(
+        headers,
+        "Разработка, программирование"
+    )
+    print_table(get_stats_vacancies_hh(hh_area_id), "HeadHunter Moscow")
+    print_table(
+        get_stats_vacancies_sj(
+            headers,
+            sj_area_id,
+            sj_catalogue_id
+        ),
+        "Superjob Moscow"
+    )
 
 
 if __name__ == "__main__":
